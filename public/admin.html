@@ -458,14 +458,15 @@
                         body: formData
                     });
                     const data = await response.json();
-                    if (data.secure_url) {
+                    if (response.ok && data.secure_url) {
                         uploadedUrls.push({ url: data.secure_url, public_id: data.public_id });
                     } else {
-                        throw new Error('Upload vers Cloudinary a échoué');
+                        const errorMessage = data.error ? data.error.message : 'Réponse invalide de Cloudinary';
+                        throw new Error(errorMessage);
                     }
                 } catch (error) {
-                    console.error('Erreur d\'upload:', error);
-                    showMessage('Erreur lors de l\'upload d\'un fichier.', 'error');
+                    console.error('Erreur d\'upload Cloudinary:', error.message);
+                    showMessage(`Erreur d'upload: ${error.message}`, 'error');
                     return null; // Arrêter en cas d'erreur
                 }
             }
