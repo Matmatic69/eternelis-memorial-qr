@@ -10,19 +10,29 @@ function isAuthenticated(event) {
   return cookies.includes('auth=authenticated');
 }
 
-// Simulation d'une base de données (en production, utilisez une vraie DB)
+// Stockage temporaire dans une variable globale (pour les tests)
+// En production, remplacez par une vraie base de données
 let memorials = [];
 
-// Charger les mémoriaux depuis un fichier (simulation)
+// Initialiser avec un mémorial de test
+if (memorials.length === 0) {
+  memorials.push({
+    id: 'test-memorial-123',
+    name: 'Marie Dupont (Test)',
+    birth_date: '1940-05-15',
+    death_date: '2023-08-20',
+    biography: 'Un exemple de mémorial pour tester le système. Cette personne a vécu une vie pleine d\'amour et de joie.',
+    message: 'Tu nous manques chaque jour. Merci pour tous ces beaux souvenirs.',
+    photos: [],
+    videos: [],
+    qr_code: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
+    qr_url: 'https://crazy-wescoff.netlify.app/memorial/test-memorial-123',
+    created_at: new Date().toISOString()
+  });
+}
+
 function loadMemorials() {
-  try {
-    // En production, vous utiliseriez une base de données
-    // Pour Netlify, vous pourriez utiliser FaunaDB, Airtable, ou autre
-    return memorials;
-  } catch (error) {
-    console.error('Erreur lors du chargement:', error);
-    return [];
-  }
+  return memorials;
 }
 
 exports.handler = async (event, context) => {
