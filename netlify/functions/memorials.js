@@ -69,15 +69,30 @@ exports.handler = async (event, context) => {
     }
 
     try {
-      // Pour Netlify, nous devons adapter le traitement des fichiers
-      // Cette version simplifiée accepte les données de base
+      console.log('Réception requête POST pour créer mémorial');
+      console.log('Body reçu:', event.body);
+      
       const body = JSON.parse(event.body);
       const { name, birth_date, death_date, biography, message } = body;
       
-      const memorialId = uuidv4();
+      console.log('Données parsées:', { name, birth_date, death_date });
       
-      // Générer le QR Code (data URL pour Netlify)
-      const qrUrl = `https://eternelis.com/memorial/${memorialId}`;
+      if (!name || !birth_date || !death_date) {
+        return {
+          statusCode: 400,
+          headers,
+          body: JSON.stringify({ error: 'Nom, date de naissance et date de décès sont obligatoires' })
+        };
+      }
+      
+      const memorialId = uuidv4();
+      console.log('ID généré:', memorialId);
+      
+      // Générer le QR Code avec l'URL du site Netlify
+      const baseUrl = process.env.SITE_URL || 'https://crazy-wescoff.netlify.app';
+      const qrUrl = `${baseUrl}/memorial/${memorialId}`;
+      console.log('URL QR:', qrUrl);
+      
       const qrCodeDataUrl = await QRCode.toDataURL(qrUrl, {
         width: 300,
         margin: 2,
@@ -92,16 +107,17 @@ exports.handler = async (event, context) => {
         name,
         birth_date,
         death_date,
-        biography,
-        message,
-        photos: [], // À adapter pour le stockage cloud
-        videos: [], // À adapter pour le stockage cloud
+        biography: biography || '',
+        message: message || '',
+        photos: [],
+        videos: [],
         qr_code: qrCodeDataUrl,
         qr_url: qrUrl,
         created_at: new Date().toISOString()
       };
       
       memorials.push(memorial);
+      console.log('Mémorial créé:', memorial.name);
       
       return {
         statusCode: 200,
@@ -113,11 +129,11 @@ exports.handler = async (event, context) => {
         })
       };
     } catch (error) {
-      console.error('Erreur:', error);
+      console.error('Erreur lors de la création:', error);
       return {
         statusCode: 500,
         headers,
-        body: JSON.stringify({ error: 'Erreur lors de la création' })
+        body: JSON.stringify({ error: 'Erreur serveur: ' + error.message })
       };
     }
   }

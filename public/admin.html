@@ -445,12 +445,23 @@
         document.getElementById('memorialForm').addEventListener('submit', async function(e) {
             e.preventDefault();
 
+            // Pour Netlify, on envoie d'abord les données de base sans les fichiers
             const formData = new FormData(this);
+            const memorialData = {
+                name: formData.get('name'),
+                birth_date: formData.get('birth_date'),
+                death_date: formData.get('death_date'),
+                biography: formData.get('biography'),
+                message: formData.get('message')
+            };
             
             try {
                 const response = await fetch('/api/memorials', {
                     method: 'POST',
-                    body: formData
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(memorialData)
                 });
 
                 if (response.ok) {
@@ -462,10 +473,11 @@
                     loadMemorials();
                 } else {
                     const error = await response.json();
-                    showMessage('Erreur: ' + error.error, 'error');
+                    showMessage('Erreur: ' + (error.error || 'Erreur inconnue'), 'error');
                 }
             } catch (error) {
-                showMessage('Erreur lors de la création du mémorial', 'error');
+                console.error('Erreur détaillée:', error);
+                showMessage('Erreur de connexion au serveur', 'error');
             }
         });
 
