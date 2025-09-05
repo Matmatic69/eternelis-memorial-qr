@@ -12,7 +12,8 @@
     "uuid": "^9.0.0",
     "bcrypt": "^5.1.0",
     "parse-multipart-data": "^1.5.0",
-    "cloudinary": "^2.2.0"
+    "cloudinary": "^2.2.0",
+    "@netlify/blobs": "^7.0.0"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"

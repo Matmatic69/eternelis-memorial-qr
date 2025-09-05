@@ -1,23 +1,4 @@
-// Stockage temporaire - doit être synchronisé avec memorials.js
-// En production, utilisez une vraie base de données partagée
-let memorials = [];
-
-// Initialiser avec le même mémorial de test que dans memorials.js
-if (memorials.length === 0) {
-  memorials.push({
-    id: 'test-memorial-123',
-    name: 'Marie Dupont (Test)',
-    birth_date: '1940-05-15',
-    death_date: '2023-08-20',
-    biography: 'Un exemple de mémorial pour tester le système. Cette personne a vécu une vie pleine d\'amour et de joie.',
-    message: 'Tu nous manques chaque jour. Merci pour tous ces beaux souvenirs.',
-    photos: [],
-    videos: [],
-    qr_code: 'data:image/png;base64,test',
-    qr_url: 'https://crazy-wescoff.netlify.app/memorial/test-memorial-123',
-    created_at: new Date().toISOString()
-  });
-}
+const { getMemorial } = require('./blob-storage');
 
 function generateMemorialPage(memorial) {
   const photosHtml = memorial.photos.map(photo => 
@@ -310,8 +291,8 @@ exports.handler = async (event, context) => {
     };
   }
   
-  // Chercher le mémorial (en production, requête base de données)
-  const memorial = memorials.find(m => m.id === memorialId);
+  // Chercher le mémorial dans le stockage Blob
+  const memorial = await getMemorial(memorialId);
   
   if (!memorial) {
     return {

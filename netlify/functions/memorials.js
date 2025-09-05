@@ -1,8 +1,6 @@
-const multipart = require('parse-multipart-data');
 const QRCode = require('qrcode');
 const { v4: uuidv4 } = require('uuid');
-const fs = require('fs');
-const path = require('path');
+const { saveMemorial, getAllMemorials, deleteMemorial } = require('./blob-storage');
 
 // Fonction utilitaire pour vérifier l'authentification
 function isAuthenticated(event) {
@@ -10,30 +8,6 @@ function isAuthenticated(event) {
   return cookies.includes('auth=authenticated');
 }
 
-// Stockage temporaire dans une variable globale (pour les tests)
-// En production, remplacez par une vraie base de données
-let memorials = [];
-
-// Initialiser avec un mémorial de test
-if (memorials.length === 0) {
-  memorials.push({
-    id: 'test-memorial-123',
-    name: 'Marie Dupont (Test)',
-    birth_date: '1940-05-15',
-    death_date: '2023-08-20',
-    biography: 'Un exemple de mémorial pour tester le système. Cette personne a vécu une vie pleine d\'amour et de joie.',
-    message: 'Tu nous manques chaque jour. Merci pour tous ces beaux souvenirs.',
-    photos: [],
-    videos: [],
-    qr_code: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
-    qr_url: 'https://crazy-wescoff.netlify.app/memorial/test-memorial-123',
-    created_at: new Date().toISOString()
-  });
-}
-
-function loadMemorials() {
-  return memorials;
-}
 
 exports.handler = async (event, context) => {
   const { httpMethod, path: requestPath } = event;
@@ -60,7 +34,7 @@ exports.handler = async (event, context) => {
       };
     }
 
-    memorials = loadMemorials();
+    const memorials = await getAllMemorials();
     return {
       statusCode: 200,
       headers,
@@ -126,8 +100,8 @@ exports.handler = async (event, context) => {
         created_at: new Date().toISOString()
       };
       
-      memorials.push(memorial);
-      console.log('Mémorial créé:', memorial.name);
+      await saveMemorial(memorial);
+      console.log('Mémorial sauvegardé:', memorial.name);
       
       return {
         statusCode: 200,
@@ -162,18 +136,7 @@ exports.handler = async (event, context) => {
       const pathSegments = event.path.split('/');
       const id = pathSegments[pathSegments.length - 1];
       
-      memorials = loadMemorials();
-      const index = memorials.findIndex(m => m.id === id);
-      
-      if (index === -1) {
-        return {
-          statusCode: 404,
-          headers,
-          body: JSON.stringify({ error: 'Mémorial non trouvé' })
-        };
-      }
-      
-      memorials.splice(index, 1);
+      await deleteMemorial(id);
       
       return {
         statusCode: 200,

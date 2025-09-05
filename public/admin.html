@@ -589,7 +589,7 @@
                     
                     <div class="memorial-actions">
                         <a href="/memorial/${memorial.id}" target="_blank" class="btn">Voir le mémorial</a>
-                        <button onclick="downloadQR('${memorial.qr_code}', '${memorial.name}')" class="btn">Télécharger QR</button>
+                        <a href="/.netlify/functions/download-qr?id=${memorial.id}" class="btn" download>Télécharger QR</a>
                         <button onclick="deleteMemorial('${memorial.id}')" class="btn btn-danger">Supprimer</button>
                     </div>
                 </div>
@@ -626,12 +626,6 @@
             }
         }
 
-        function downloadQR(qrPath, name) {
-            const link = document.createElement('a');
-            link.href = `/${qrPath}`;
-            link.download = `QR-${name.replace(/[^a-zA-Z0-9]/g, '_')}.png`;
-            link.click();
-        }
 
         function showMessage(message, type) {
             const messagesContainer = document.getElementById('messages');
