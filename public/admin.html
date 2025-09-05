@@ -249,7 +249,7 @@
     <div class="container">
         <div class="header">
             <h1>🌹 Eternelis Memorial QR</h1>
-            <p>Interface d'administration pour la gestion des mémoriaux numériques (Version 2.1)</p>
+            <p>Interface d'administration pour la gestion des mémoriaux numériques (Version 2.2)</p>
         </div>
 
         <!-- Formulaire de connexion -->
@@ -350,9 +350,24 @@
         let isAuthenticated = false;
 
         // Vérifier l'authentification au chargement
+        let CLOUDINARY = { cloudName: 'memorial', uploadPreset: 'memorial_upload' };
+
         window.onload = function() {
-            checkAuth();
+            loadConfig().finally(() => checkAuth());
         };
+
+        async function loadConfig() {
+            try {
+                const res = await fetch('/api/config');
+                if (res.ok) {
+                    const cfg = await res.json();
+                    if (cfg.cloudName) CLOUDINARY.cloudName = cfg.cloudName;
+                    if (cfg.uploadPreset) CLOUDINARY.uploadPreset = cfg.uploadPreset;
+                }
+            } catch (e) {
+                console.warn('Impossible de charger la config Cloudinary, utilisation des valeurs par défaut.');
+            }
+        }
 
         async function checkAuth() {
             try {
@@ -442,10 +457,18 @@
         }
 
         // Upload des fichiers vers Cloudinary
+        async function ensureUploadPreset() {
+            try {
+                await fetch('/api/ensure-upload-preset', { method: 'POST' });
+            } catch (e) {
+                console.warn('Impossible de vérifier/créer le preset Cloudinary');
+            }
+        }
+
         async function uploadFiles(files) {
             const uploadedUrls = [];
-            const cloudName = 'memorial'; // Votre nom de cloud Cloudinary
-            const uploadPreset = 'memorial_upload'; // Preset d'upload à créer dans Cloudinary
+            const cloudName = CLOUDINARY.cloudName;
+            const uploadPreset = CLOUDINARY.uploadPreset || 'memorial_upload';
 
             for (const file of files) {
                 const formData = new FormData();
@@ -453,7 +476,7 @@
                 formData.append('upload_preset', uploadPreset);
 
                 try {
-                    const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/upload`, {
+                    const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`, {
                         method: 'POST',
                         body: formData
                     });
@@ -462,7 +485,23 @@
                         uploadedUrls.push({ url: data.secure_url, public_id: data.public_id });
                     } else {
                         const errorMessage = data.error ? data.error.message : 'Réponse invalide de Cloudinary';
-                        throw new Error(errorMessage);
+                        if (errorMessage && errorMessage.toLowerCase().includes('upload preset not found')) {
+                            // Tenter de créer le preset côté serveur puis réessayer une fois
+                            await ensureUploadPreset();
+                            const retry = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`, {
+                                method: 'POST',
+                                body: formData
+                            });
+                            const retryData = await retry.json();
+                            if (retry.ok && retryData.secure_url) {
+                                uploadedUrls.push({ url: retryData.secure_url, public_id: retryData.public_id });
+                            } else {
+                                const retryMsg = retryData.error ? retryData.error.message : errorMessage;
+                                throw new Error(retryMsg);
+                            }
+                        } else {
+                            throw new Error(errorMessage);
+                        }
                     }
                 } catch (error) {
                     console.error('Erreur d\'upload Cloudinary:', error.message);
@@ -584,7 +623,7 @@
                             <p><strong>Créé le:</strong> ${new Date(memorial.created_at).toLocaleDateString('fr-FR')}</p>
                         </div>
                         <div style="text-align: center;">
-                            <img src="/${memorial.qr_code}" alt="QR Code" class="qr-preview">
+                            <img src="${memorial.qr_code}" alt="QR Code" class="qr-preview">
                         </div>
                     </div>
                     

@@ -34,12 +34,21 @@ exports.handler = async (event, context) => {
       };
     }
 
-    const memorials = await getAllMemorials();
-    return {
-      statusCode: 200,
-      headers,
-      body: JSON.stringify(memorials)
-    };
+    try {
+      const memorials = await getAllMemorials();
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify(memorials)
+      };
+    } catch (err) {
+      console.error('Erreur GET /memorials (fallback liste vide):', err);
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify([])
+      };
+    }
   }
 
   // POST - Créer un mémorial
