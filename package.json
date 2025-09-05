@@ -1,0 +1,22 @@
+{
+  "name": "eternelis-memorial-qr",
+  "version": "1.0.0",
+  "description": "Système de QR codes commémoratifs pour Eternelis",
+  "main": "server.js",
+  "scripts": {
+    "build": "echo 'Build complete'",
+    "dev": "netlify dev"
+  },
+  "dependencies": {
+    "qrcode": "^1.5.3",
+    "uuid": "^9.0.0",
+    "bcrypt": "^5.1.0",
+    "parse-multipart-data": "^1.5.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "keywords": ["qr", "memorial", "commemorative", "cemetery"],
+  "author": "Ethernelis",
+  "license": "ISC"
+}
