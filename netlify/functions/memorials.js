@@ -83,7 +83,7 @@ exports.handler = async (event, context) => {
       console.log('Body reçu:', event.body);
       
       const body = JSON.parse(event.body);
-      const { name, birth_date, death_date, biography, message } = body;
+      const { name, birth_date, death_date, biography, message, photos, videos } = body;
       
       console.log('Données parsées:', { name, birth_date, death_date });
       
@@ -119,8 +119,8 @@ exports.handler = async (event, context) => {
         death_date,
         biography: biography || '',
         message: message || '',
-        photos: [],
-        videos: [],
+        photos: photos || [],
+        videos: videos || [],
         qr_code: qrCodeDataUrl,
         qr_url: qrUrl,
         created_at: new Date().toISOString()
